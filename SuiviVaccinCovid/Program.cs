@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace SuiviVaccinCovid
@@ -9,24 +10,17 @@ namespace SuiviVaccinCovid
         public int VaccinId { get; set; }
         public DateTime Date { get; set; }
         public string NAMPatient { get; set; }
-        public TypeVaccin Type { get; set; }
+        public string Type { get; set; }
 
         public override string ToString()
         {
-            return $" Vaccin #{VaccinId} ({Type?.Nom}), adiminstré le {Date} à {NAMPatient}";
+            return $" Vaccin #{VaccinId} ({Type}), adiminstré le {Date} à {NAMPatient}";
         }
-    }
-
-    public class TypeVaccin
-    {
-        public int TypeVaccinId { get; set; }
-        public string Nom { get; set; }
     }
 
     public class VaccinContext : DbContext
     {
         public DbSet<Vaccin> Vaccins { get; set; }
-        public DbSet<TypeVaccin> TypesVaccin { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
             => options.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=VaccinBD;Trusted_Connection=True;");
@@ -36,40 +30,57 @@ namespace SuiviVaccinCovid
     {
         static void Main(string[] args)
         {
+            Program p = new Program();
+            p.Peupler();
+
             VaccinContext context = new VaccinContext();
-            if (context.TypesVaccin.Count() == 0)
-            {
-                context.TypesVaccin.Add(new TypeVaccin { Nom = "Pfizer" });
-                context.TypesVaccin.Add(new TypeVaccin { Nom = "Moderna" });
-            }
-            TypeVaccin pfizer = context.TypesVaccin.Where(p => p.Nom == "Pfizer").FirstOrDefault();
-            TypeVaccin moderna = context.TypesVaccin.Where(p => p.Nom == "Moderna").FirstOrDefault();
+
+            p.AjouterVaccin(context, "SIOA95032911", "Pfizer");
+
+            Vaccin lePlusRecent = p.LePlusRecent(context.Vaccins);
+            Console.WriteLine(lePlusRecent);
+        }
+
+        public void Peupler()
+        {
+            VaccinContext context = new VaccinContext();
+
             Vaccin dose1Mylene = new Vaccin
             {
-                Date = DateTime.Today,
+                Date = new DateTime(2021, 01, 24),
                 NAMPatient = "LAPM12345678",
-                Type = moderna
+                Type = "Moderna"
             };
 
             Vaccin dose1Gaston = new Vaccin
             {
                 Date = new DateTime(2021, 01, 15),
                 NAMPatient = "BHEG12345678",
-                Type = pfizer
+                Type = "Pfizer"
             };
-            
+
             context.Vaccins.Add(dose1Mylene);
             context.Vaccins.Add(dose1Gaston);
 
-            context.SaveChanges();  
+            context.SaveChanges();
+        }
 
-            context.Remove(dose1Gaston);
-            dose1Mylene.Type = pfizer;
 
-            context.SaveChanges();  
+        public void AjouterVaccin(VaccinContext contexte, string nam, string type)
+        {
+            Vaccin v = new Vaccin
+            {
+                NAMPatient = nam,
+                Type = type,
+                Date = DateTime.Now
+            };
+            contexte.Add(v);
+            contexte.SaveChanges();
+        }
 
-            foreach (Vaccin vaccin in context.Vaccins)
-                Console.WriteLine(vaccin);
+        public Vaccin LePlusRecent(IEnumerable<Vaccin> vaccins)
+        {
+            return vaccins.OrderBy(v => v.Date).Last();
         }
     }
 }
