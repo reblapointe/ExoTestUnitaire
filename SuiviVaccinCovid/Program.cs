@@ -51,6 +51,33 @@ namespace SuiviVaccinCovid
         public DateTime Now { get { return DateTime.Now; } }
     }
 
+    public interface IDaoVaccin
+    {
+        public IEnumerable<Vaccin> ObtenirVaccins();
+        public void AjouterVaccin(Vaccin v);
+        public void Sauvegarder();
+    }
+
+    public class DaoVaccin : IDaoVaccin
+    {
+        private VaccinContext contexte = new VaccinContext();
+
+        public IEnumerable<Vaccin> ObtenirVaccins()
+        {
+            return contexte.Vaccins;
+        }
+
+        public void AjouterVaccin(Vaccin v)
+        {
+            contexte.Vaccins.Add(v);
+        }
+
+        public void Sauvegarder()
+        {
+            contexte.SaveChanges();
+        }
+    }
+
     public class Program
     {
         static void Main(string[] args)
@@ -58,11 +85,11 @@ namespace SuiviVaccinCovid
             Program p = new Program();
             p.Peupler();
 
-            VaccinContext context = new VaccinContext();
+            IDaoVaccin context = new DaoVaccin();
 
             p.AjouterVaccin(context, p.CreerNouveauVaccin(new FournisseurDeDate(), "SIOA95032911", "Pfizer"));
 
-            Vaccin lePlusRecent = p.LePlusRecent(context.Vaccins);
+            Vaccin lePlusRecent = p.LePlusRecent(context.ObtenirVaccins());
             Console.WriteLine(lePlusRecent);
         }
 
@@ -100,16 +127,18 @@ namespace SuiviVaccinCovid
             };
         }
 
-        public void AjouterVaccin(VaccinContext contexte, Vaccin vaccin)
+        /* ... */ 
+        public void AjouterVaccin(IDaoVaccin contexte, Vaccin vaccin)
         {
-            var memePatient = contexte.Vaccins.Where(v => v.NAMPatient == vaccin.NAMPatient);
+            var memePatient = contexte.ObtenirVaccins().Where(v => v.NAMPatient == vaccin.NAMPatient);
             if (memePatient.Count() > 1)
                 throw new ArgumentException("Patient déjà vacciné deux fois");
             if (memePatient.Count() == 1 && memePatient.First().Type != vaccin.Type)
-                throw new ArgumentException("Un patient ne peut pas recevoir deux types de vaccins");
+                throw new ArgumentException("Un patient ne peut pas recevoir deux " +
+                    "types de vaccins");
 
-            contexte.Add(vaccin);
-            contexte.SaveChanges();
+            contexte.AjouterVaccin(vaccin);
+            contexte.Sauvegarder();
         }
 
         public Vaccin LePlusRecent(IEnumerable<Vaccin> vaccins)
