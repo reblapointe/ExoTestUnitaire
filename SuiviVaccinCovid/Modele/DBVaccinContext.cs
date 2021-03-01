@@ -4,7 +4,7 @@ using System.Text;
 
 namespace SuiviVaccinCovid.Modele
 {
-    public class DaoVaccin : IDaoVaccin
+    public class DBVaccinContext : IDaoVaccin
     {
         private VaccinContext contexte = new VaccinContext();
 

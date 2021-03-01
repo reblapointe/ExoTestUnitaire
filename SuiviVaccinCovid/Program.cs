@@ -10,19 +10,19 @@ namespace SuiviVaccinCovid
     public class Program
     {
         public IFournisseurDeDate FournisseurDeDate { get; set; }
-        public IDaoVaccin Contexte { get; set; }
+        public IDaoVaccin DaoVaccin { get; set; }
 
         static void Main(string[] args)
         {
             // Injection des dépendances
             Program p = new Program
             {
-                FournisseurDeDate = new FournisseurDeDate(),
-                Contexte = new DaoVaccin()
+                FournisseurDeDate = new FournisseurDeMaintenant(),
+                DaoVaccin = new DBVaccinContext()
             };
             p.Peupler();
 
-            p.AjouterVaccin(p.CreerNouveauVaccin("SIOA95032911", "Pfizer"));
+            p.EnregistrerVaccin(p.CreerNouveauVaccin("SIOA95032911", "Pfizer"));
 
             Vaccin lePlusRecent = p.LePlusRecent();
             Console.WriteLine(lePlusRecent);
@@ -30,23 +30,26 @@ namespace SuiviVaccinCovid
 
         public void Peupler()
         {
-            Vaccin dose1Mylene = new Vaccin
+            if (DaoVaccin.ObtenirVaccins().Count() == 0)
             {
-                Date = new DateTime(2021, 01, 24),
-                NAMPatient = "LAPM12345678",
-                Type = "Moderna"
-            };
+                Vaccin dose1Mylene = new Vaccin
+                {
+                    Date = new DateTime(2021, 01, 24),
+                    NAMPatient = "LAPM12345678",
+                    Type = "Moderna"
+                };
 
-            Vaccin dose1Gaston = new Vaccin
-            {
-                Date = new DateTime(2021, 01, 15),
-                NAMPatient = "BHEG12345678",
-                Type = "Pfizer"
-            };
+                Vaccin dose1Gaston = new Vaccin
+                {
+                    Date = new DateTime(2021, 01, 15),
+                    NAMPatient = "BHEG12345678",
+                    Type = "Pfizer"
+                };
 
-            Contexte.AjouterVaccin(dose1Mylene);
-            Contexte.AjouterVaccin(dose1Gaston);
-            Contexte.Sauvegarder();
+                DaoVaccin.AjouterVaccin(dose1Mylene);
+                DaoVaccin.AjouterVaccin(dose1Gaston);
+                DaoVaccin.Sauvegarder();
+            }
         }
 
         public Vaccin CreerNouveauVaccin(string nam, string type)
@@ -59,17 +62,17 @@ namespace SuiviVaccinCovid
             };
         }
 
-        public void AjouterVaccin(Vaccin vaccin)
+        public void EnregistrerVaccin(Vaccin vaccin)
         {
-            var memePatient = Contexte.ObtenirVaccins().Where(v => v.NAMPatient == vaccin.NAMPatient);
+            var memePatient = DaoVaccin.ObtenirVaccins().Where(v => v.NAMPatient == vaccin.NAMPatient);
             if (memePatient.Count() > 1)
                 throw new ArgumentException("Patient déjà vacciné deux fois");
             if (memePatient.Count() == 1 && memePatient.First().Type != vaccin.Type)
                 throw new ArgumentException("Un patient ne peut pas recevoir deux " +
                     "types de vaccins");
 
-            Contexte.AjouterVaccin(vaccin);
-            Contexte.Sauvegarder();
+            DaoVaccin.AjouterVaccin(vaccin);
+            DaoVaccin.Sauvegarder();
         }
 
         public Vaccin LePlusRecent(IEnumerable<Vaccin> vaccins)
@@ -81,7 +84,7 @@ namespace SuiviVaccinCovid
 
         public Vaccin LePlusRecent()
         {
-            return LePlusRecent(Contexte.ObtenirVaccins());
+            return LePlusRecent(DaoVaccin.ObtenirVaccins());
         }
     }
 }

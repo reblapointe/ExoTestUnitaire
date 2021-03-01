@@ -70,7 +70,7 @@ namespace SuiviVaccinCovid.Tests
 
             Program p = new Program
             {
-                Contexte = mockContexte.Object
+                DaoVaccin = mockContexte.Object
             };
 
             Vaccin v = new Vaccin
@@ -79,7 +79,7 @@ namespace SuiviVaccinCovid.Tests
                 Type = "ABC",
                 Date = new DateTime(2021, 03, 27)
             };
-            p.AjouterVaccin(v);
+            p.EnregistrerVaccin(v);
 
             mockContexte.Verify(m => m.AjouterVaccin(v), Times.Once);
             mockContexte.Verify(m => m.Sauvegarder());
@@ -94,23 +94,22 @@ namespace SuiviVaccinCovid.Tests
                 new Vaccin { NAMPatient = "CCCC10101010", Type = "Moderna", Date = new DateTime(2021,11,2)},
             };
 
-            Mock<IDaoVaccin> mockContexte = new Mock<IDaoVaccin>();
-            mockContexte.Setup(m => m.AjouterVaccin(It.IsAny<Vaccin>()));
-            mockContexte.Setup(m => m.ObtenirVaccins()).Returns(vaccins);
-            mockContexte.Setup(m => m.Sauvegarder());
-
-            Program p = new Program
-            {
-                Contexte = mockContexte.Object
-            };
-
             Vaccin v = new Vaccin
             {
                 NAMPatient = "BBBB10101010",
                 Type = "Pfizer",
                 Date = new DateTime(2021, 03, 27)
             };
-            p.AjouterVaccin(v);
+            Mock <IDaoVaccin> mockContexte = new Mock<IDaoVaccin>();
+            mockContexte.Setup(m => m.AjouterVaccin(It.IsAny<Vaccin>()));
+            mockContexte.Setup(m => m.ObtenirVaccins()).Returns(vaccins);
+            mockContexte.Setup(m => m.Sauvegarder());
+
+            Program p = new Program
+            {
+                DaoVaccin = mockContexte.Object
+            };
+            p.EnregistrerVaccin(v);
 
             mockContexte.Verify(m => m.AjouterVaccin(v), Times.Once);
             mockContexte.Verify(m => m.AjouterVaccin(It.IsAny<Vaccin>()), Times.Once);
@@ -132,7 +131,7 @@ namespace SuiviVaccinCovid.Tests
 
             Program p = new Program
             {
-                Contexte = mockContexte.Object
+                DaoVaccin = mockContexte.Object
             };
 
             Vaccin dejaDeuxFois = new Vaccin()
@@ -141,7 +140,7 @@ namespace SuiviVaccinCovid.Tests
                 Type = "Pfizer",
                 Date = new DateTime(2021, 03, 27)
             };
-            Assert.ThrowsException<ArgumentException>(() => p.AjouterVaccin(dejaDeuxFois));
+            Assert.ThrowsException<ArgumentException>(() => p.EnregistrerVaccin(dejaDeuxFois));
 
             mockContexte.Verify(m => m.AjouterVaccin(It.IsAny<Vaccin>()), Times.Never);
 
@@ -151,7 +150,7 @@ namespace SuiviVaccinCovid.Tests
                 Type = "Pfizer",
                 Date = new DateTime(2021, 03, 27)
             };
-            Assert.ThrowsException<ArgumentException>(() => p.AjouterVaccin(mauvaisType));
+            Assert.ThrowsException<ArgumentException>(() => p.EnregistrerVaccin(mauvaisType));
 
             mockContexte.Verify(m => m.AjouterVaccin(It.IsAny<Vaccin>()), Times.Never);
         }
