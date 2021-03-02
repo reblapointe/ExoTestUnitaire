@@ -1,5 +1,4 @@
 ﻿
-using DateUtil;
 using SuiviVaccinCovid.Modele;
 using System;
 using System.Collections.Generic;
@@ -9,16 +8,16 @@ namespace SuiviVaccinCovid
 {
     public class Program
     {
-        public IFournisseurDeDate FournisseurDeDate { get; set; }
-        public IDaoVaccin DaoVaccin { get; set; }
+        public Func<DateTime> FournisseurDeDate { get; set; }
+        public VaccinContext Contexte { get; set; }
 
         static void Main(string[] args)
         {
             // Injection des dépendances
             Program p = new Program
             {
-                FournisseurDeDate = new FournisseurDeMaintenant(),
-                DaoVaccin = new DBVaccinContext()
+                FournisseurDeDate = () => DateTime.Now,
+                Contexte = new VaccinContext()
             };
             p.Peupler();
 
@@ -30,7 +29,7 @@ namespace SuiviVaccinCovid
 
         public void Peupler()
         {
-            if (DaoVaccin.ObtenirVaccins().Count() == 0)
+            if (Contexte.Vaccins.Count() == 0)
             {
                 Vaccin dose1Mylene = new Vaccin
                 {
@@ -46,9 +45,9 @@ namespace SuiviVaccinCovid
                     Type = "Pfizer"
                 };
 
-                DaoVaccin.AjouterVaccin(dose1Mylene);
-                DaoVaccin.AjouterVaccin(dose1Gaston);
-                DaoVaccin.Sauvegarder();
+                Contexte.Vaccins.Add(dose1Mylene);
+                Contexte.Vaccins.Add(dose1Gaston);
+                Contexte.SaveChanges();
             }
         }
 
@@ -58,21 +57,21 @@ namespace SuiviVaccinCovid
             {
                 NAMPatient = nam,
                 Type = type,
-                Date = FournisseurDeDate.Now
+                Date = FournisseurDeDate()
             };
         }
 
         public void EnregistrerVaccin(Vaccin vaccin)
         {
-            var memePatient = DaoVaccin.ObtenirVaccins().Where(v => v.NAMPatient == vaccin.NAMPatient);
+            var memePatient = Contexte.Vaccins.Where(v => v.NAMPatient == vaccin.NAMPatient);
             if (memePatient.Count() > 1)
                 throw new ArgumentException("Patient déjà vacciné deux fois");
             if (memePatient.Count() == 1 && memePatient.First().Type != vaccin.Type)
                 throw new ArgumentException("Un patient ne peut pas recevoir deux " +
                     "types de vaccins");
 
-            DaoVaccin.AjouterVaccin(vaccin);
-            DaoVaccin.Sauvegarder();
+            Contexte.Vaccins.Add(vaccin);
+            Contexte.SaveChanges();
         }
 
         public Vaccin LePlusRecent(IEnumerable<Vaccin> vaccins)
@@ -84,7 +83,7 @@ namespace SuiviVaccinCovid
 
         public Vaccin LePlusRecent()
         {
-            return LePlusRecent(DaoVaccin.ObtenirVaccins());
+            return LePlusRecent(Contexte.Vaccins);
         }
     }
 }
