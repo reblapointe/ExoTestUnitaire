@@ -75,6 +75,7 @@ namespace SuiviVaccinCovid.Tests
 
             var mockContexte = new Mock<VaccinContext>();
             mockContexte.Setup(c => c.Vaccins).Returns(mockSet.Object);
+            mockContexte.Setup(m => m.SaveChanges());
 
 
             Program p = new Program
@@ -110,7 +111,8 @@ namespace SuiviVaccinCovid.Tests
             mockSet.As<IQueryable<Vaccin>>().Setup(m => m.GetEnumerator()).Returns(vaccins.GetEnumerator());
 
             var mockContexte = new Mock<VaccinContext>();
-            mockContexte.Setup(c => c.Vaccins).Returns(mockSet.Object);
+            mockContexte.Setup(m => m.Vaccins).Returns(mockSet.Object);
+            mockContexte.Setup(m => m.SaveChanges());
 
             Program p = new Program
             {
