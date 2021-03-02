@@ -6,6 +6,7 @@ using System.Linq;
 
 namespace SuiviVaccinCovid
 {
+    // Solution avec délégués
     public class Program
     {
         public Func<DateTime> FournisseurDeDate { get; set; }
