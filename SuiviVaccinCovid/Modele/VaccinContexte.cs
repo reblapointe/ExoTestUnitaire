@@ -8,8 +8,9 @@ namespace SuiviVaccinCovid.Modele
     public class VaccinContext : DbContext
     {
         public virtual DbSet<Vaccin> Vaccins { get; set; }
+        public virtual DbSet<TypeVaccin> TypeVaccins { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
-            => options.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=VaccinBD;Trusted_Connection=True;");
+            => options.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=VaccinBDT;Trusted_Connection=True;");
     }
 }

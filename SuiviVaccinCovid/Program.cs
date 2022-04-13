@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.EntityFrameworkCore;
 using SuiviVaccinCovid.Modele;
 using System;
 using System.Collections.Generic;
@@ -15,14 +16,14 @@ namespace SuiviVaccinCovid
         static void Main(string[] args)
         {
             // Injection des dépendances
-            Program p = new Program
+            Program p = new()
             {
                 FournisseurDeDate = () => DateTime.Now,
                 Contexte = new VaccinContext()
             };
             p.Peupler();
 
-            p.EnregistrerVaccin(p.CreerNouveauVaccin("SIOA95032911", "Pfizer"));
+            p.EnregistrerVaccin(p.CreerNouveauVaccin("SIOA95032911", p.Contexte.TypeVaccins.Single(t => t.Nom == "Pfizer")));
 
             Vaccin lePlusRecent = p.LePlusRecent();
             Console.WriteLine(lePlusRecent);
@@ -30,20 +31,29 @@ namespace SuiviVaccinCovid
 
         public void Peupler()
         {
-            if (Contexte.Vaccins.Count() == 0)
+            if (!Contexte.TypeVaccins.Any())
             {
-                Vaccin dose1Mylene = new Vaccin
+                Contexte.TypeVaccins.Add(new TypeVaccin { Nom = "Moderna" });
+                Contexte.TypeVaccins.Add(new TypeVaccin { Nom = "Pfizer" });
+                Contexte.TypeVaccins.Add(new TypeVaccin { Nom = "AstraZeneca" });
+                Contexte.SaveChanges();
+            }
+
+
+            if (!Contexte.Vaccins.Any())
+            {
+                Vaccin dose1Mylene = new()
                 {
                     Date = new DateTime(2021, 01, 24),
                     NAMPatient = "LAPM12345678",
-                    Type = "Moderna"
+                    Type = Contexte.TypeVaccins.Single(t => t.Nom == "Moderna")
                 };
 
-                Vaccin dose1Gaston = new Vaccin
+                Vaccin dose1Gaston = new()
                 {
                     Date = new DateTime(2021, 01, 15),
                     NAMPatient = "BHEG12345678",
-                    Type = "Pfizer"
+                    Type = Contexte.TypeVaccins.Single(t => t.Nom == "Pfizer")
                 };
 
                 Contexte.Vaccins.Add(dose1Mylene);
@@ -52,7 +62,7 @@ namespace SuiviVaccinCovid
             }
         }
 
-        public Vaccin CreerNouveauVaccin(string nam, string type)
+        public Vaccin CreerNouveauVaccin(string nam, TypeVaccin type)
         {
             return new Vaccin
             {
@@ -75,10 +85,10 @@ namespace SuiviVaccinCovid
             Contexte.SaveChanges();
         }
 
-        public Vaccin LePlusRecent(IEnumerable<Vaccin> vaccins)
+        public static Vaccin LePlusRecent(IQueryable<Vaccin> vaccins)
         {
-            if (vaccins.Count() != 0)
-                return vaccins.OrderBy(v => v.Date).Last();
+            if (vaccins.Any())
+                return vaccins.Include("Type").OrderBy(v => v.Date).Last();
             return null;
         }
 
