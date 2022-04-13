@@ -18,7 +18,6 @@ namespace SuiviVaccinCovid.Tests
             mockList.As<IQueryable<T>>().Setup(m => m.Expression).Returns(queryable.Expression);
             mockList.As<IQueryable<T>>().Setup(m => m.ElementType).Returns(queryable.ElementType);
             mockList.As<IQueryable<T>>().Setup(m => m.GetEnumerator()).Returns(queryable.GetEnumerator());
-            
             return mockList;
         }
     }

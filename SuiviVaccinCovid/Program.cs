@@ -23,7 +23,7 @@ namespace SuiviVaccinCovid
             };
             p.Peupler();
 
-            p.EnregistrerVaccin(p.CreerNouveauVaccin("SIOA95032911", p.Contexte.TypeVaccins.Single(t => t.Nom == "Pfizer")));
+            p.EnregistrerVaccin(p.CreerNouveauVaccin("PILA95032911", p.Contexte.TypeVaccins.Single(t => t.Nom == "Pfizer")));
 
             Vaccin lePlusRecent = p.LePlusRecent();
             Console.WriteLine(lePlusRecent);
@@ -38,7 +38,6 @@ namespace SuiviVaccinCovid
                 Contexte.TypeVaccins.Add(new TypeVaccin { Nom = "AstraZeneca" });
                 Contexte.SaveChanges();
             }
-
 
             if (!Contexte.Vaccins.Any())
             {
@@ -75,11 +74,10 @@ namespace SuiviVaccinCovid
         public void EnregistrerVaccin(Vaccin vaccin)
         {
             var memePatient = Contexte.Vaccins.Where(v => v.NAMPatient == vaccin.NAMPatient);
-            if (memePatient.Count() > 1)
-                throw new ArgumentException("Patient déjà vacciné deux fois");
+            if (memePatient.Any() && Math.Abs((vaccin.Date - memePatient.OrderBy(v => v.Date).Last().Date).Days) < 21)
+                throw new ArgumentException("Les doses doivent être séparées par au moins 21 jours");
             if (memePatient.Count() == 1 && memePatient.First().Type != vaccin.Type)
-                throw new ArgumentException("Un patient ne peut pas recevoir deux " +
-                    "types de vaccins");
+                throw new ArgumentException("Les deux premiers vaccins d'un patient doivent être du même type");
 
             Contexte.Vaccins.Add(vaccin);
             Contexte.SaveChanges();
@@ -88,13 +86,13 @@ namespace SuiviVaccinCovid
         public static Vaccin LePlusRecent(IQueryable<Vaccin> vaccins)
         {
             if (vaccins.Any())
-                return vaccins.Include("Type").OrderBy(v => v.Date).Last();
+                return vaccins.OrderBy(v => v.Date).Last();
             return null;
         }
 
         public Vaccin LePlusRecent()
         {
-            return LePlusRecent(Contexte.Vaccins);
+            return LePlusRecent(Contexte.Vaccins.Include(v => v.Type));
         }
     }
 }

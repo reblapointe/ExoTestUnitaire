@@ -70,8 +70,6 @@ namespace SuiviVaccinCovid.Tests
         {
             var mockContexte = new Mock<VaccinContext>();
             mockContexte.Setup(c => c.Vaccins).Returns(MockContextProvider.GetMockSet(vaccins).Object);
-            mockContexte.Setup(m => m.SaveChanges());
-
 
             Program p = new()
             {
@@ -107,7 +105,7 @@ namespace SuiviVaccinCovid.Tests
             {
                 NAMPatient = "BBBB10101010",
                 Type = types[0],
-                Date = new DateTime(2021, 03, 27)
+                Date = new DateTime(2022, 03, 27)
             };
 
             p.EnregistrerVaccin(v);
@@ -128,13 +126,12 @@ namespace SuiviVaccinCovid.Tests
                 Contexte = mockContexte.Object
             };
 
-            Vaccin dejaDeuxFois = new()
+            Vaccin tropRapproché = new()
             {
                 NAMPatient = "AAAA10101010",
-                Type = types[0],
-                Date = new DateTime(2021, 03, 27)
+                Date = new DateTime(2021, 12, 4)
             };
-            Assert.ThrowsException<ArgumentException>(() => p.EnregistrerVaccin(dejaDeuxFois));
+            Assert.ThrowsException<ArgumentException>(() => p.EnregistrerVaccin(tropRapproché));
 
             mockContexte.Verify(m => m.Add(It.IsAny<Vaccin>()), Times.Never);
 
@@ -142,7 +139,7 @@ namespace SuiviVaccinCovid.Tests
             {
                 NAMPatient = "CCCC10101010",
                 Type = types[0],
-                Date = new DateTime(2021, 03, 27)
+                Date = new DateTime(2022, 03, 27)
             };
             Assert.ThrowsException<ArgumentException>(() => p.EnregistrerVaccin(mauvaisType));
 
