@@ -27,7 +27,7 @@ namespace SuiviVaccinCovid.Modele
 
         public override string ToString()
         {
-            return $" Vaccin #{VaccinId} ({Type}), adiminstré le {Date} à {NAMPatient}";
+            return $"Vaccin #{VaccinId} ({Type}), adiminstré le {Date} à {NAMPatient}";
         }
 
     }
