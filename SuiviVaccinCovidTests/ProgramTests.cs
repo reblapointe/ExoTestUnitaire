@@ -1,9 +1,11 @@
 ﻿
+using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SuiviVaccinCovid.Modele;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace SuiviVaccinCovid.Tests
@@ -11,148 +13,137 @@ namespace SuiviVaccinCovid.Tests
     [TestClass()]
     public class ProgramTests
     {
+        List<Vaccin> vaccins;
+        List<TypeVaccin> types;
+
+        [TestInitialize]
+        public void BuildVaccins()
+        {
+            types = new List<TypeVaccin> {
+                new TypeVaccin { Nom = "Pfizer" },
+                new TypeVaccin { Nom = "Moderna" },
+             };
+            vaccins = new List<Vaccin> {
+                new Vaccin { NAMPatient = "AAAA10101010", Type = types[0], Date = new DateTime(2021,11,21)},
+                new Vaccin { NAMPatient = "AAAA10101010", Type = types[0], Date = new DateTime(2021,09,21)},
+                new Vaccin { NAMPatient = "BBBB10101010", Type = types[0], Date = new DateTime(2021,11,30)},
+                new Vaccin { NAMPatient = "CCCC10101010", Type = types[1], Date = new DateTime(2021,11,2)},
+            };
+        }
         [TestMethod()]
         public void LePlusRecentTest()
         {
-            Program p = new Program();
-            List<Vaccin> vaccins = new List<Vaccin> {
-                new Vaccin { NAMPatient = "AAAA10101010", Type = "Pfizer", Date = new DateTime(2021,11,21)},
-                new Vaccin { NAMPatient = "BBBB10101010", Type = "Pfizer", Date = new DateTime(2021,11,30)},
-                new Vaccin { NAMPatient = "CCCC10101010", Type = "Moderna", Date = new DateTime(2021,11,2)},
-            };
-            Vaccin reponse = vaccins[1];
-            Assert.AreEqual(reponse, p.LePlusRecent(vaccins));
+            Assert.AreEqual(vaccins[2], Program.LePlusRecent(vaccins.AsQueryable()));
         }
 
         [TestMethod()]
         public void LePlusRecentVideTest()
         {
-            Program p = new Program();
-            List<Vaccin> vaccins = new List<Vaccin>();
-            Assert.IsNull(p.LePlusRecent(vaccins));
+            List<Vaccin> vaccins = new();
+            Assert.IsNull(Program.LePlusRecent(vaccins.AsQueryable()));
         }
-        
+      
         [TestMethod()]
         public void CreerNouveauVaccinTest()
         {
-            DateTime d = new DateTime(2021, 03, 27, 2, 34, 55, 392);
+            DateTime d = new (2021, 03, 27, 2, 34, 55, 392);
 
-            Mock<DateUtil.IFournisseurDeDate> mockFournisseurDate = new Mock<DateUtil.IFournisseurDeDate>();
-            mockFournisseurDate.Setup(m => m.Now).Returns(d);
+            Mock<Func<DateTime>> mockFournisseurDate = new();
+            mockFournisseurDate.Setup(m => m()).Returns(d);
 
-            Program p = new Program
+            Program p = new()
             {
                 FournisseurDeDate = mockFournisseurDate.Object
             };
-            Vaccin v = new Vaccin
+            Vaccin v = new()
             {
                 NAMPatient = "AAAA99999999",
-                Type = "ABC",
+                Type = types[0],
                 Date = d
             };
-            Vaccin cree = p.CreerNouveauVaccin("AAAA99999999", "ABC");
+            Vaccin cree = p.CreerNouveauVaccin("AAAA99999999", types[0]);
             Assert.AreEqual(v, cree);
         }
 
         [TestMethod()]
         public void AjouterVaccinTest()
         {
-            List<Vaccin> vaccins = new List<Vaccin> {
-                new Vaccin { NAMPatient = "AAAA10101010", Type = "Pfizer", Date = new DateTime(2021,11,21)},
-                new Vaccin { NAMPatient = "BBBB10101010", Type = "Pfizer", Date = new DateTime(2021,11,30)},
-                new Vaccin { NAMPatient = "CCCC10101010", Type = "Moderna", Date = new DateTime(2021,11,2)},
-            };
+            var mockContexte = new Mock<VaccinContext>();
+            mockContexte.Setup(c => c.Vaccins).Returns(MockContextProvider.GetMockSet(vaccins).Object);
 
-            Mock<IDaoVaccin> mockContexte = new Mock<IDaoVaccin>();
-            mockContexte.Setup(m => m.AjouterVaccin(It.IsAny<Vaccin>()));
-            mockContexte.Setup(m => m.ObtenirVaccins()).Returns(vaccins);
-            mockContexte.Setup(m => m.Sauvegarder());
-
-            Program p = new Program
+            Program p = new()
             {
-                DaoVaccin = mockContexte.Object
+                Contexte = mockContexte.Object
             };
 
-            Vaccin v = new Vaccin
+            Vaccin v = new()
             {
                 NAMPatient = "AAAA99999999",
-                Type = "ABC",
+                Type = types[0],
                 Date = new DateTime(2021, 03, 27)
             };
             p.EnregistrerVaccin(v);
 
-            mockContexte.Verify(m => m.AjouterVaccin(v), Times.Once);
-            mockContexte.Verify(m => m.Sauvegarder());
+            p.LePlusRecent();
+
+            mockContexte.Verify(m => m.Vaccins.Add(v), Times.Once);
+            mockContexte.Verify(m => m.SaveChanges());
         }
 
         [TestMethod()]
         public void AjouterVaccinSuiviTest()
         {
-            List<Vaccin> vaccins = new List<Vaccin> {
-                new Vaccin { NAMPatient = "AAAA10101010", Type = "Pfizer", Date = new DateTime(2021,11,21)},
-                new Vaccin { NAMPatient = "BBBB10101010", Type = "Pfizer", Date = new DateTime(2021,11,30)},
-                new Vaccin { NAMPatient = "CCCC10101010", Type = "Moderna", Date = new DateTime(2021,11,2)},
+            var mockContexte = new Mock<VaccinContext>();
+            mockContexte.Setup(c => c.Vaccins).Returns(MockContextProvider.GetMockSet(vaccins).Object);
+
+            Program p = new()
+            {
+                Contexte = mockContexte.Object
             };
 
-            Vaccin v = new Vaccin
+            Vaccin v = new()
             {
                 NAMPatient = "BBBB10101010",
-                Type = "Pfizer",
-                Date = new DateTime(2021, 03, 27)
+                Type = types[0],
+                Date = new DateTime(2022, 03, 27)
             };
-            Mock <IDaoVaccin> mockContexte = new Mock<IDaoVaccin>();
-            mockContexte.Setup(m => m.AjouterVaccin(It.IsAny<Vaccin>()));
-            mockContexte.Setup(m => m.ObtenirVaccins()).Returns(vaccins);
-            mockContexte.Setup(m => m.Sauvegarder());
 
-            Program p = new Program
-            {
-                DaoVaccin = mockContexte.Object
-            };
             p.EnregistrerVaccin(v);
 
-            mockContexte.Verify(m => m.AjouterVaccin(v), Times.Once);
-            mockContexte.Verify(m => m.AjouterVaccin(It.IsAny<Vaccin>()), Times.Once);
-            mockContexte.Verify(m => m.Sauvegarder());
+            mockContexte.Verify(m => m.Vaccins.Add(v), Times.Once);
+            mockContexte.Verify(m => m.Vaccins.Add(It.IsAny<Vaccin>()), Times.Once);
+            mockContexte.Verify(m => m.SaveChanges());
         }
 
         [TestMethod()]
         public void AjouterVaccinInvalideTest()
         {
-            List<Vaccin> vaccins = new List<Vaccin> {
-                new Vaccin { NAMPatient = "AAAA10101010", Type = "Pfizer", Date = new DateTime(2021,11,21)},
-                new Vaccin { NAMPatient = "AAAA10101010", Type = "Pfizer", Date = new DateTime(2021,11,30)},
-                new Vaccin { NAMPatient = "CCCC10101010", Type = "Moderna", Date = new DateTime(2021,11,2)},
-            };
+            var mockContexte = new Mock<VaccinContext>();
+            mockContexte.Setup(c => c.Vaccins).Returns(MockContextProvider.GetMockSet(vaccins).Object);
 
-            Mock<IDaoVaccin> mockContexte = new Mock<IDaoVaccin>();
-            mockContexte.Setup(m => m.AjouterVaccin(It.IsAny<Vaccin>()));
-            mockContexte.Setup(m => m.ObtenirVaccins()).Returns(vaccins);
-
-            Program p = new Program
+            Program p = new()
             {
-                DaoVaccin = mockContexte.Object
+                Contexte = mockContexte.Object
             };
 
-            Vaccin dejaDeuxFois = new Vaccin()
+            Vaccin tropRapproché = new()
             {
                 NAMPatient = "AAAA10101010",
-                Type = "Pfizer",
-                Date = new DateTime(2021, 03, 27)
+                Date = new DateTime(2021, 12, 4)
             };
-            Assert.ThrowsException<ArgumentException>(() => p.EnregistrerVaccin(dejaDeuxFois));
+            Assert.ThrowsException<ArgumentException>(() => p.EnregistrerVaccin(tropRapproché));
 
-            mockContexte.Verify(m => m.AjouterVaccin(It.IsAny<Vaccin>()), Times.Never);
+            mockContexte.Verify(m => m.Add(It.IsAny<Vaccin>()), Times.Never);
 
-            Vaccin mauvaisType = new Vaccin()
+            Vaccin mauvaisType = new()
             {
                 NAMPatient = "CCCC10101010",
-                Type = "Pfizer",
-                Date = new DateTime(2021, 03, 27)
+                Type = types[0],
+                Date = new DateTime(2022, 03, 27)
             };
             Assert.ThrowsException<ArgumentException>(() => p.EnregistrerVaccin(mauvaisType));
 
-            mockContexte.Verify(m => m.AjouterVaccin(It.IsAny<Vaccin>()), Times.Never);
+            mockContexte.Verify(m => m.Vaccins.Add(It.IsAny<Vaccin>()), Times.Never);
         }
     }
 }

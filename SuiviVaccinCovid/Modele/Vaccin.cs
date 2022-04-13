@@ -9,7 +9,7 @@ namespace SuiviVaccinCovid.Modele
         public int VaccinId { get; set; }
         public DateTime Date { get; set; }
         public string NAMPatient { get; set; }
-        public string Type { get; set; }
+        public TypeVaccin Type { get; set; }
 
         public override bool Equals(object obj)
         {
@@ -27,7 +27,7 @@ namespace SuiviVaccinCovid.Modele
 
         public override string ToString()
         {
-            return $" Vaccin #{VaccinId} ({Type}), adiminstré le {Date} à {NAMPatient}";
+            return $"Vaccin #{VaccinId} ({Type}), adiminstré le {Date} à {NAMPatient}";
         }
 
     }

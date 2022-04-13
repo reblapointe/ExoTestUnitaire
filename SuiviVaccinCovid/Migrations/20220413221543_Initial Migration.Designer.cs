@@ -5,44 +5,43 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using SuiviVaccinCovid;
 using SuiviVaccinCovid.Modele;
 
 namespace SuiviVaccinCovid.Migrations
 {
     [DbContext(typeof(VaccinContext))]
-    [Migration("20210120005602_TypeVaccin")]
-    partial class TypeVaccin
+    [Migration("20220413221543_Initial Migration")]
+    partial class InitialMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .UseIdentityColumns()
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
-                .HasAnnotation("ProductVersion", "5.0.2");
+                .HasAnnotation("ProductVersion", "5.0.16")
+                .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-            modelBuilder.Entity("SuiviVaccinCovid.TypeVaccin", b =>
+            modelBuilder.Entity("SuiviVaccinCovid.Modele.TypeVaccin", b =>
                 {
                     b.Property<int>("TypeVaccinId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .UseIdentityColumn();
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("Nom")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("TypeVaccinId");
 
-                    b.ToTable("TypeVaccin");
+                    b.ToTable("TypeVaccins");
                 });
 
-            modelBuilder.Entity("SuiviVaccinCovid.Vaccin", b =>
+            modelBuilder.Entity("SuiviVaccinCovid.Modele.Vaccin", b =>
                 {
                     b.Property<int>("VaccinId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .UseIdentityColumn();
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
@@ -60,9 +59,9 @@ namespace SuiviVaccinCovid.Migrations
                     b.ToTable("Vaccins");
                 });
 
-            modelBuilder.Entity("SuiviVaccinCovid.Vaccin", b =>
+            modelBuilder.Entity("SuiviVaccinCovid.Modele.Vaccin", b =>
                 {
-                    b.HasOne("SuiviVaccinCovid.TypeVaccin", "Type")
+                    b.HasOne("SuiviVaccinCovid.Modele.TypeVaccin", "Type")
                         .WithMany()
                         .HasForeignKey("TypeVaccinId");
 
