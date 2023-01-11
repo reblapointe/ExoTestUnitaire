@@ -121,12 +121,12 @@ namespace SuiviVaccinationCovid.Tests
                 Contexte = mockContexte.Object
             };
 
-            Dose tropRapproché = new()
+            Dose tropRapproche = new()
             {
                 NAMPatient = "AAAA10101010",
                 Date = new DateTime(2021, 12, 4)
             };
-            Assert.ThrowsException<ArgumentException>(() => p.EnregistrerDose(tropRapproché));
+            Assert.ThrowsException<ArgumentException>(() => p.EnregistrerDose(tropRapproche));
 
             mockContexte.Verify(m => m.Add(It.IsAny<Dose>()), Times.Never);
 

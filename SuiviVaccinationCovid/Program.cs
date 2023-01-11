@@ -30,7 +30,7 @@ namespace SuiviVaccinationCovid
 
             Console.WriteLine();
             Console.WriteLine("Les types de vaccins : ");
-            foreach(var t in p.Contexte.Vaccins)
+            foreach (var t in p.Contexte.Vaccins)
                 Console.WriteLine("  " + t);
             Console.WriteLine();
             Console.WriteLine("Les vaccins : ");
@@ -82,8 +82,8 @@ namespace SuiviVaccinationCovid
 
         public void EnregistrerDose(Dose dose)
         {
-            var memePatient = Contexte.Doses.Where(v => v.NAMPatient == dose.NAMPatient);
-            if (memePatient.Any() && Math.Abs((dose.Date - memePatient.OrderBy(v => v.Date).Last().Date).Days) < 21)
+            var memePatient = Contexte.Doses.Where(d => d.NAMPatient == dose.NAMPatient);
+            if (memePatient.Any() && Math.Abs((dose.Date - memePatient.OrderBy(d => d.Date).Last().Date).Days) < 21)
                 throw new ArgumentException("Les doses doivent être espacées d'au moins 21 jours");
             if (memePatient.Count() == 1 && memePatient.First().Vaccin != dose.Vaccin)
                 throw new ArgumentException("Les deux premières doses d'un patient doivent être le même type de vaccin");
@@ -95,7 +95,7 @@ namespace SuiviVaccinationCovid
         public static Dose LePlusRecent(IQueryable<Dose> doses)
         {
             if (doses.Any())
-                return doses.OrderBy(v => v.Date).Last();
+                return doses.OrderBy(d => d.Date).Last();
             return null;
         }
 
