@@ -25,7 +25,7 @@ namespace SuiviVaccinationCovid
 
             //p.EnregistrerDose(p.CreerNouvelleDose("PILA95032911", p.Contexte.Vaccins.Single(t => t.Nom == "Pfizer")));
 
-            Console.WriteLine("Le vaccin le plus récent : ");
+            Console.WriteLine("La dose la plus récente : ");
             Console.WriteLine(p.LePlusRecent());
 
             Console.WriteLine();
@@ -33,7 +33,7 @@ namespace SuiviVaccinationCovid
             foreach (var t in p.Contexte.Vaccins)
                 Console.WriteLine("  " + t);
             Console.WriteLine();
-            Console.WriteLine("Les vaccins : ");
+            Console.WriteLine("Les doses : ");
             foreach (var v in p.Contexte.Doses)
                 Console.WriteLine("  " + v);
         }
