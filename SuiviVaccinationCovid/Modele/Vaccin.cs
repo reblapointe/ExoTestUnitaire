@@ -2,28 +2,28 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace SuiviVaccinCovid.Modele
+namespace SuiviVaccinationCovid.Modele
 {
-    public class TypeVaccin
+    public class Vaccin
     {
-        public int TypeVaccinId { get; set; }
+        public int VaccinId { get; set; }
         public string Nom { get; set; }
 
         public override bool Equals(object obj)
         {
-            return obj is TypeVaccin vaccin &&
-                   TypeVaccinId == vaccin.TypeVaccinId &&
+            return obj is Vaccin vaccin &&
+                   VaccinId == vaccin.VaccinId &&
                    Nom == vaccin.Nom;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(TypeVaccinId, Nom);
+            return HashCode.Combine(VaccinId, Nom);
         }
 
         public override string ToString()
         {
-            return $"#{TypeVaccinId} {Nom}";
+            return $"#{VaccinId} {Nom}";
         }
     }
 }
