@@ -1,7 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using Moq.EntityFrameworkCore;
 using SuiviVaccinationCovid.Modele;
-using SuiviVaccinationCovidTests;
 
 namespace SuiviVaccinationCovid.Tests
 {
@@ -64,7 +64,7 @@ namespace SuiviVaccinationCovid.Tests
         public void AjouterDoseTest()
         {
             var mockContexte = new Mock<VaccinationContext>();
-            mockContexte.Setup(c => c.Doses).Returns(MockContextProvider.GetMockSet(doses).Object);
+            mockContexte.Setup(c => c.Doses).ReturnsDbSet(doses);
 
             Program p = new()
             {
@@ -89,7 +89,7 @@ namespace SuiviVaccinationCovid.Tests
         public void AjouterDoseSuiviTest()
         {
             var mockContexte = new Mock<VaccinationContext>();
-            mockContexte.Setup(c => c.Doses).Returns(MockContextProvider.GetMockSet(doses).Object);
+            mockContexte.Setup(c => c.Doses).ReturnsDbSet(doses);
 
             Program p = new()
             {
@@ -104,7 +104,6 @@ namespace SuiviVaccinationCovid.Tests
             };
 
             p.EnregistrerDose(d);
-
             mockContexte.Verify(m => m.Doses.Add(d), Times.Once);
             mockContexte.Verify(m => m.Doses.Add(It.IsAny<Dose>()), Times.Once);
             mockContexte.Verify(m => m.SaveChanges());
@@ -114,7 +113,7 @@ namespace SuiviVaccinationCovid.Tests
         public void AjouterDoseInvalideTest()
         {
             var mockContexte = new Mock<VaccinationContext>();
-            mockContexte.Setup(c => c.Doses).Returns(MockContextProvider.GetMockSet(doses).Object);
+            mockContexte.Setup(c => c.Doses).ReturnsDbSet(doses);
 
             Program p = new()
             {
