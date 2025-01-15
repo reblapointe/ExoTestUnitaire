@@ -7,21 +7,26 @@ using System.Linq;
 
 namespace SuiviVaccinationCovid
 {
-    // Solution avec délégués
     public class Program
     {
         public VaccinationContext Contexte { get; set; }
+        public Func<DateTime> FournisseurDeDate { get; set; }
 
         public static void Main(string[] _)
         {
             // Injection des dépendances
             Program p = new()
             {
-                Contexte = new VaccinationContext()
+                Contexte = new VaccinationContext(),
+                FournisseurDeDate = () => DateTime.Now
             };
             p.Peupler();
 
-            p.EnregistrerDose("PILA95032911", p.Contexte.Vaccins.Single(t => t.Nom == "Pfizer"));
+            p.EnregistrerDose(
+                p.CreerNouvelleDose(
+                    "PILA95032911",
+                    p.Contexte.Vaccins.Single(t => t.Nom == "Pfizer"))
+                );
 
             Console.WriteLine("La dose la plus récente : ");
             Console.WriteLine(p.LePlusRecent());
@@ -67,19 +72,22 @@ namespace SuiviVaccinationCovid
                 Contexte.SaveChanges();
             }
         }
-
-        public void EnregistrerDose(string nam, Vaccin vaccin)
+        public Dose CreerNouvelleDose(string nam, Vaccin vaccin)
         {
-            Dose dose = new()
+            return new Dose
             {
                 NAMPatient = nam,
                 Vaccin = vaccin,
-                Date = DateTime.Now
+                Date = FournisseurDeDate()
             };
+        }
 
+        public void EnregistrerDose(Dose dose)
+        {
             Contexte.Doses.Add(dose);
             Contexte.SaveChanges();
         }
+
 
         public static Dose LePlusRecent(IQueryable<Dose> doses)
         {
