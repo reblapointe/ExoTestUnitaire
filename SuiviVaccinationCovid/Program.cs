@@ -22,11 +22,7 @@ namespace SuiviVaccinationCovid
             };
             p.Peupler();
 
-            p.EnregistrerDose(
-                p.CreerNouvelleDose(
-                    "PILA95032911",
-                    p.Contexte.Vaccins.Single(t => t.Nom == "Pfizer"))
-                );
+
 
             Console.WriteLine("La dose la plus récente : ");
             Console.WriteLine(p.LePlusRecent());
@@ -78,12 +74,30 @@ namespace SuiviVaccinationCovid
             {
                 NAMPatient = nam,
                 Vaccin = vaccin,
+                VaccinId = vaccin.VaccinId,
                 Date = FournisseurDeDate()
             };
         }
 
         public void EnregistrerDose(Dose dose)
         {
+
+            // Les doses doivent être espacées d’au moins 3 semaines (21 jours).
+            // Les deux premières doses doivent être du même type de vaccin.
+
+            var dosesPatient =
+                (from d in Contexte.Doses
+                 where d.NAMPatient == dose.NAMPatient
+                 orderby d.Date
+                 select d).Include(d => d.Vaccin);
+
+            var nbDoses = dosesPatient.Count();
+            if (nbDoses == 1 && dosesPatient.First().Vaccin != dose.Vaccin)
+                throw new ArgumentException("Les deux premières doses doivent être du même vaccin.");
+
+            if (nbDoses > 0 && dosesPatient.Last().Date > dose.Date.AddDays(-21))
+                throw new ArgumentException("Les doses doivent être espacées de d'au moins 21 jours.");
+
             Contexte.Doses.Add(dose);
             Contexte.SaveChanges();
         }

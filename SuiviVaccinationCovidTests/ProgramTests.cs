@@ -30,18 +30,21 @@ namespace SuiviVaccinationCovidTests
                 {
                     NAMPatient = "AAAA10101010",
                     Vaccin = vaccins[0],
+                    VaccinId = vaccins[0].VaccinId,
                     Date = new DateTime(2024,11,21)
                 },
                 new Dose
                 {
                     NAMPatient = "BBBB10101010",
                     Vaccin = vaccins[0],
+                    VaccinId = vaccins[0].VaccinId,
                     Date = new DateTime(2024,11,30)
                 },
                 new Dose
                 {
                     NAMPatient = "CCCC10101010",
                     Vaccin = vaccins[1],
+                    VaccinId = vaccins[1].VaccinId,
                     Date = new DateTime(2024,11,2)
                 }
             ];
@@ -50,6 +53,7 @@ namespace SuiviVaccinationCovidTests
             {
                 NAMPatient = "BBBB10101010",
                 Vaccin = vaccins[0],
+                VaccinId = vaccins[0].VaccinId,
                 Date = new DateTime(2024, 11, 30)
             };
             Assert.AreEqual(reponse, Program.LePlusRecent(doses.AsQueryable()));
@@ -81,6 +85,7 @@ namespace SuiviVaccinationCovidTests
             {
                 NAMPatient = "AAAA99999999",
                 Vaccin = v,
+                VaccinId = v.VaccinId,
                 Date = date
             };
             Dose cree = p.CreerNouvelleDose("AAAA99999999", v);
@@ -101,11 +106,14 @@ namespace SuiviVaccinationCovidTests
             {
                 new() { NAMPatient = "AAAA10101010",
                         Vaccin = vaccins[0],
+                        VaccinId = vaccins[0].VaccinId,
                         Date = new DateTime(2024, 11, 21)},
                 new() { NAMPatient = "BBBB10101010",
+                        VaccinId = vaccins[0].VaccinId,
                         Vaccin = vaccins[0],
                         Date = new DateTime(2024, 11, 30)},
                 new() { NAMPatient = "CCCC10101010",
+                        VaccinId = vaccins[0].VaccinId,
                         Vaccin = vaccins[1],
                         Date = new DateTime(2024, 11, 2)},
             }.AsQueryable();
@@ -129,6 +137,76 @@ namespace SuiviVaccinationCovidTests
             mockContexte.Verify(m => m.Doses.Add(It.IsAny<Dose>()), Times.Once);
             mockContexte.Verify(m => m.SaveChanges());
         }
+        [TestMethod()]
+        public void DosesTropRapprochees()
+        {
+            List<Vaccin> vaccins =
+            [
+                new Vaccin { Nom = "Pfizer" },
+                new Vaccin { Nom = "Moderna" }
+            ];
 
+            var doses = new List<Dose>
+            {
+                new() { NAMPatient = "AAAA10101010",
+                        Vaccin = vaccins[0],
+                        VaccinId = vaccins[0].VaccinId,
+                        Date = new DateTime(2024, 11, 21)},
+            }.AsQueryable();
+
+            var mockContexte = new Mock<VaccinationContext>();
+            mockContexte.Setup(c => c.Doses).ReturnsDbSet(doses);
+
+            Program p = new()
+            {
+                Contexte = mockContexte.Object
+            };
+            Dose d = new()
+            {
+                NAMPatient = "AAAA10101010",
+                Vaccin = vaccins[0],
+                VaccinId = vaccins[0].VaccinId,
+                Date = new DateTime(2024, 11, 27)
+            };
+            Assert.ThrowsException<ArgumentException>(() => p.EnregistrerDose(d));
+            mockContexte.Verify(m => m.Doses.Add(d), Times.Never);
+            mockContexte.Verify(m => m.Doses.Add(It.IsAny<Dose>()), Times.Never);
+        }
+
+        [TestMethod()]
+        public void PremiereEtDeuxiemeDoseVaccinDifferent()
+        {
+            List<Vaccin> vaccins =
+            [
+                new Vaccin { Nom = "Pfizer" },
+                new Vaccin { Nom = "Moderna" }
+            ];
+
+            var doses = new List<Dose>
+            {
+                new() { NAMPatient = "AAAA10101010",
+                        Vaccin = vaccins[0],
+                        VaccinId = vaccins[0].VaccinId,
+                        Date = new DateTime(2024, 11, 21)},
+            }.AsQueryable();
+
+            var mockContexte = new Mock<VaccinationContext>();
+            mockContexte.Setup(c => c.Doses).ReturnsDbSet(doses);
+
+            Program p = new()
+            {
+                Contexte = mockContexte.Object
+            };
+            Dose d = new()
+            {
+                NAMPatient = "AAAA10101010",
+                Vaccin = vaccins[1],
+                VaccinId = vaccins[1].VaccinId,
+                Date = new DateTime(2025, 11, 27)
+            };
+            Assert.ThrowsException<ArgumentException>(() => p.EnregistrerDose(d));
+            mockContexte.Verify(m => m.Doses.Add(d), Times.Never);
+            mockContexte.Verify(m => m.Doses.Add(It.IsAny<Dose>()), Times.Never);
+        }
     }
 }
