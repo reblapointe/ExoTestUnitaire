@@ -23,7 +23,7 @@ namespace SuiviVaccinationCovid.Modele
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(DoseId, Date, NAMPatient, Vaccin);
+            return HashCode.Combine(DoseId, Date, NAMPatient, VaccinId);
         }
 
         public override string ToString()
