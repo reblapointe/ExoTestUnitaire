@@ -9,6 +9,7 @@ namespace SuiviVaccinationCovid.Modele
         public int DoseId { get; set; }
         public DateTime Date { get; set; }
         public string NAMPatient { get; set; }
+        public int VaccinId { get; set; }
         public Vaccin Vaccin { get; set; }
 
         public override bool Equals(object obj)
@@ -17,12 +18,12 @@ namespace SuiviVaccinationCovid.Modele
                    DoseId == dose.DoseId &&
                    Date == dose.Date &&
                    NAMPatient == dose.NAMPatient &&
-                   Vaccin == dose.Vaccin;
+                   VaccinId == dose.VaccinId;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(DoseId, Date, NAMPatient, Vaccin);
+            return HashCode.Combine(DoseId, Date, NAMPatient, VaccinId);
         }
 
         public override string ToString()

@@ -74,6 +74,7 @@ namespace SuiviVaccinationCovid
             {
                 NAMPatient = nam,
                 Vaccin = vaccin,
+                VaccinId = vaccin.VaccinId,
                 Date = DateTime.Now
             };
 
