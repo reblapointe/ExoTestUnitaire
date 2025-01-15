@@ -12,8 +12,8 @@ using SuiviVaccinationCovid.Modele;
 namespace SuiviVaccinationCovid.Migrations
 {
     [DbContext(typeof(VaccinationContext))]
-    [Migration("20250115160809_initialmigration")]
-    partial class initialmigration
+    [Migration("20250115160932_Initialmigration")]
+    partial class Initialmigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
